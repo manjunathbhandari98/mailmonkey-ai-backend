@@ -1,6 +1,7 @@
 package com.quodex.mailmonkeyai_backend.controller;
 
 import com.quodex.mailmonkeyai_backend.dto.request.EmailGenerationRequest;
+import com.quodex.mailmonkeyai_backend.dto.request.EmailImprovementRequest;
 import com.quodex.mailmonkeyai_backend.dto.response.EmailGenerationResponse;
 import com.quodex.mailmonkeyai_backend.service.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,11 @@ public class EmailController {
   @PostMapping("/generate")
   public ResponseEntity<EmailGenerationResponse> generateEmail(@RequestBody EmailGenerationRequest request){
     return ResponseEntity.ok(emailService.generateEmail(request));
+  }
+
+  @PostMapping("/improve")
+  public ResponseEntity<EmailGenerationResponse> improveEmail(@RequestBody EmailImprovementRequest request){
+    return ResponseEntity.ok(emailService.improveEmail(request));
   }
 
 }

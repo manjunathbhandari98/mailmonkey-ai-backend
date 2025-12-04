@@ -1,6 +1,7 @@
 package com.quodex.mailmonkeyai_backend.service.impl;
 
 import com.quodex.mailmonkeyai_backend.dto.request.EmailGenerationRequest;
+import com.quodex.mailmonkeyai_backend.dto.request.EmailImprovementRequest;
 import com.quodex.mailmonkeyai_backend.dto.response.EmailGenerationResponse;
 import com.quodex.mailmonkeyai_backend.service.EmailService;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +59,39 @@ public class EmailServiceImpl implements EmailService {
       .build();
   }
 
+  @Override
+  public EmailGenerationResponse improveEmail(EmailImprovementRequest request) {
+    String prompt = buildImprovePrompt(request);
+    String requestBody = String.format("""
+                {
+                  "contents": [
+                    {
+                      "parts": [
+                        {
+                          "text": "%s"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """, prompt);
+
+    String response = webClient.post()
+      .uri("/v1beta/models/gemini-2.5-flash:generateContent")
+      .header("x-goog-api-key", apiKey)
+      .bodyValue(requestBody)
+      .retrieve()
+      .bodyToMono(String.class)
+      .block();
+
+    String generatedResponse =  extractResponse(response);
+    return EmailGenerationResponse.builder()
+      .generatedEmail(generatedResponse)
+      .build();
+
+  }
+
+
   private String extractResponse(String response) {
     try {
       ObjectMapper mapper = new ObjectMapper();
@@ -101,5 +135,17 @@ public class EmailServiceImpl implements EmailService {
       subject
     );
   }
+
+  private String buildImprovePrompt(EmailImprovementRequest request) {
+    return """
+        Improve this email based on the selected option: %s.
+        Keep meaning intact and return only the improved email: %s
+        """.formatted(
+      request.getImprovementType(),
+      request.getOriginalEmail()
+    );
+  }
+
+
 
 }
