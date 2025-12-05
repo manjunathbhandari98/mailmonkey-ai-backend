@@ -1,8 +1,26 @@
 spring:
   application:
     name: mailmonkeyai-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mailmonkey_db
+    username: postgres
+    password: pass123
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: 8080
+
+jwt:
+  secret: tJhQ2B4vYNpK990VHSJZK4PXRZ3IKQOw77jtfEbwKUE=
+  access-token-expiration-ms: 900000
+  refresh-token-expiration-ms: 604800000
 
 gemini:
   api:
     key: ${GEMINI_API_KEY}
     url: ${GEMINI_API_URL}
+
+frontend:
+  url: http://localhost:4200
