@@ -8,11 +8,14 @@ import com.quodex.mailmonkeyai_backend.dto.response.AuthResponse;
 import com.quodex.mailmonkeyai_backend.entity.User;
 import com.quodex.mailmonkeyai_backend.jwt.JwtService;
 import com.quodex.mailmonkeyai_backend.repository.UserRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -47,13 +50,24 @@ public class AuthService {
   }
 
   public AuthResponse refresh(RefreshTokenRequest req) {
-    String email = jwt.extractEmail(req.getRefreshToken());
-    User user = userRepo.findByEmail(email).orElseThrow();
+    String refreshToken = req.getRefreshToken();
 
-    if (!jwt.isTokenValid(req.getRefreshToken(), user)) {
-      throw new RuntimeException("Invalid refresh token");
+    try {
+      String email = jwt.extractEmail(refreshToken);
+      User user = userRepo.findByEmail(email).orElseThrow();
+
+      if (!jwt.isTokenValid(refreshToken, user)) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid refresh token");
+      }
+
+      String newAccessToken = jwt.generateAccessToken(user);
+      String newRefreshToken = jwt.generateRefreshToken(user);
+
+      return UserMapper.toAuthResponse(newAccessToken, newRefreshToken);
+
+    } catch (ExpiredJwtException ex) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Refresh token expired");
     }
-
-    return UserMapper.toAuthResponse(jwt.generateAccessToken(user),jwt.generateRefreshToken(user));
   }
+
 }
