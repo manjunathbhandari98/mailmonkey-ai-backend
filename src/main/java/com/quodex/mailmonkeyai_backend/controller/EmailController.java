@@ -33,15 +33,14 @@ public class EmailController {
   }
 
   @PostMapping("/save")
-  public ResponseEntity<?> saveEmail(
-    @AuthenticationPrincipal User user,
-    @RequestBody EmailRequest request
+  public ResponseEntity<EmailResponse> saveEmail(
+    @RequestBody EmailRequest request,
+    @AuthenticationPrincipal User user
   ) {
-    System.out.println("User: " + user);
-    System.out.println("Request: " + request);
-    Email saved = emailService.saveEmail(request, user);
+    EmailResponse saved = emailService.saveEmail(request, user);
     return ResponseEntity.ok(saved);
   }
+
 
   @GetMapping("/history")
   public ResponseEntity<List<EmailResponse>> getHistory(@AuthenticationPrincipal User user){
@@ -53,6 +52,11 @@ public class EmailController {
 
     emailService.deleteEmail(emailId,user);
     return ResponseEntity.ok("Email Deleted Successfully");
+  }
+
+  @GetMapping("/recent")
+  public ResponseEntity<List<EmailResponse>> getRecentEmails(@AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(emailService.getRecentEmails(user));
   }
 
 }

@@ -16,8 +16,10 @@ public interface EmailService {
 
   EmailGenerationResponse improveEmail(EmailImprovementRequest request);
 
-  Email saveEmail(EmailRequest request, User user);
+  EmailResponse saveEmail(EmailRequest request, User user);
 
   List<EmailResponse> getEmails(User user);
   void deleteEmail(String emailId, User user);
+
+  List<EmailResponse> getRecentEmails(User user);
 }

@@ -1,5 +1,6 @@
 package com.quodex.mailmonkeyai_backend.service.impl;
 
+import com.quodex.mailmonkeyai_backend.Mapper.EmailMapper;
 import com.quodex.mailmonkeyai_backend.dto.request.EmailGenerationRequest;
 import com.quodex.mailmonkeyai_backend.dto.request.EmailImprovementRequest;
 import com.quodex.mailmonkeyai_backend.dto.request.EmailRequest;
@@ -223,21 +224,10 @@ public class EmailServiceImpl implements EmailService {
   }
 
   @Override
-  public Email saveEmail(EmailRequest request, User user) {
+  public EmailResponse saveEmail(EmailRequest request, User user) {
 
-    if (user == null)
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
-
-    Email email = Email.builder()
-      .subject(request.getSubject())
-      .content(request.getContent())
-      .tone(request.getTone())
-      .type(request.getType())
-      .user(user)
-      .createdAt(LocalDateTime.now())
-      .build();
-
-    return emailRepository.save(email);
+    Email email = EmailMapper.mapperToEntity(request,user);
+    return EmailMapper.mapperToResponse(emailRepository.save(email));
   }
 
   @Override
@@ -272,4 +262,22 @@ public class EmailServiceImpl implements EmailService {
       .toList();
   }
 
+  @Override
+  public List<EmailResponse> getRecentEmails(User user){
+    if (user == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+    }
+    List<Email> emails = emailRepository.findTop10ByUserOrderByCreatedAtDesc(user);
+    return emails.stream()
+      .map(email -> EmailResponse.builder()
+        .id(email.getId())
+        .subject(email.getSubject())
+        .content(email.getContent())
+        .type(email.getType())
+        .tone(email.getTone())
+        .userId(email.getUser().getId().toString())
+        .build()
+      )
+      .toList();
+  }
 }

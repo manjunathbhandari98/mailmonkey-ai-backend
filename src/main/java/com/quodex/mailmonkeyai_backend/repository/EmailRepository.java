@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface EmailRepository extends JpaRepository<Email, String> {
   List<Email> findByUser(User user);
   Optional<Email> findByIdAndUser(String id, User user);
+  List<Email> findTop10ByUserOrderByCreatedAtDesc(User user);
+
 }
